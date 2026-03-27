@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuffs - Gate Entry</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #fff; min-height: 100vh; }
+
+        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .nav-logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; text-decoration: none; color: #fff; }
+        .nav-logo span { color: #00d4ff; }
+        .nav-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .nav-links a { color: #94a3b8; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; background: #334155; }
+        .nav-links a.active { color: #00d4ff; }
+
+        .container { max-width: 600px; margin: 0 auto; padding: 2rem 1rem; }
+
+        .section { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem; }
+        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: #00d4ff; }
+
+        .scan-area {
+            background: #0f172a;
+            border: 2px dashed #334155;
+            border-radius: 16px;
+            padding: 3rem 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+        .scan-area:hover { border-color: #00d4ff; background: #162032; }
+        .scan-area i { font-size: 3rem; color: #475569; margin-bottom: 1rem; display: block; }
+        .scan-area p { color: #94a3b8; font-size: 0.9rem; }
+        .scan-area .hint { font-size: 0.8rem; color: #475569; margin-top: 0.5rem; }
+
+        .manual-entry { display: flex; gap: 0.5rem; }
+        .manual-entry input { flex: 1; padding: 0.75rem 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 0.95rem; font-family: inherit; }
+        .manual-entry input:focus { outline: none; border-color: #00d4ff; }
+
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: #00d4ff; color: #0f172a; }
+        .btn-primary:hover { background: #00b8e6; }
+        .btn-success { background: #22c55e; color: #fff; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-secondary { background: #334155; color: #fff; }
+        .btn-secondary:hover { background: #475569; }
+
+        /* Result panels */
+        .result-panel { display: none; border-radius: 16px; padding: 2rem; text-align: center; margin-bottom: 1rem; animation: slideIn 0.3s ease; }
+        .result-panel.active { display: block; }
+        .result-success { background: linear-gradient(135deg, #064e3b, #065f46); border: 1px solid #34d399; }
+        .result-error { background: linear-gradient(135deg, #7f1d1d, #991b1b); border: 1px solid #ef4444; }
+        .result-panel .icon { font-size: 3rem; margin-bottom: 1rem; }
+        .result-success .icon { color: #34d399; }
+        .result-error .icon { color: #ef4444; }
+        .result-panel h2 { font-size: 1.3rem; margin-bottom: 0.5rem; }
+        .result-panel .detail { color: #d1d5db; font-size: 0.9rem; margin-bottom: 0.25rem; }
+        .band-display { font-size: 1.8rem; font-weight: 800; color: #00d4ff; margin: 1rem 0; font-family: monospace; letter-spacing: 1px; background: #0f172a; padding: 1rem; border-radius: 12px; word-break: break-all; }
+        .result-panel .actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+
+        .instructions { background: #0f172a; border: 1px solid #334155; border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 1.5rem; }
+        .instructions h4 { color: #00d4ff; margin-bottom: 0.5rem; font-size: 0.9rem; }
+        .instructions ol { padding-left: 1.25rem; color: #94a3b8; font-size: 0.85rem; line-height: 1.8; }
+
+        .stats-mini { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .stat-mini { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 0.75rem; text-align: center; }
+        .stat-mini .num { font-size: 1.5rem; font-weight: 700; color: #00d4ff; }
+        .stat-mini .label { font-size: 0.7rem; color: #94a3b8; text-transform: uppercase; }
+
+        @keyframes slideIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: none; } }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">CUFFS<span>.</span></a>
+        <div class="nav-links">
+            <a href="admin.html"><i class="fas fa-shield-halved"></i> Admin</a>
+            <a href="gate.html" class="active"><i class="fas fa-door-open"></i> Gate</a>
+            <a href="exit.html"><i class="fas fa-right-from-bracket"></i> Exit</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <div class="instructions">
+            <h4><i class="fas fa-info-circle"></i> Guard Instructions</h4>
+            <ol>
+                <li>Ask attendee to show their <strong>ticket QR code</strong></li>
+                <li>Tap the scan area or enter the Ticket ID manually</li>
+                <li>Verify the customer name matches</li>
+                <li>Give the attendee the assigned <strong>wristband</strong></li>
+                <li>Press <strong>"Mark Entered"</strong> to complete entry</li>
+            </ol>
+        </div>
+
+        <div class="stats-mini">
+            <div class="stat-mini"><div class="num" id="statWaiting">0</div><div class="label">Waiting</div></div>
+            <div class="stat-mini"><div class="num" id="statInside">0</div><div class="label">Inside</div></div>
+            <div class="stat-mini"><div class="num" id="statBands">0</div><div class="label">Bands Left</div></div>
+        </div>
+
+        <!-- Scan Section -->
+        <div class="section" id="scanSection">
+            <div class="section-title"><i class="fas fa-qrcode"></i> Scan Ticket QR</div>
+            <div class="scan-area" id="scanArea" onclick="simulateScan()">
+                <i class="fas fa-camera"></i>
+                <p>Tap to scan ticket QR code</p>
+                <p class="hint">(Simulated: will prompt for Ticket ID)</p>
+            </div>
+            <div class="manual-entry">
+                <input type="text" id="manualTicketId" placeholder="Or type Ticket ID here (e.g. TKT-...)">
+                <button class="btn btn-primary" onclick="lookupTicket()"><i class="fas fa-search"></i> Look Up</button>
+            </div>
+        </div>
+
+        <!-- Success Result -->
+        <div class="result-panel result-success" id="resultSuccess">
+            <div class="icon"><i class="fas fa-check-circle"></i></div>
+            <h2>Ticket Verified!</h2>
+            <div class="detail">Customer: <strong id="successName"></strong></div>
+            <div class="detail">Event: <strong id="successEvent"></strong></div>
+            <div class="detail" style="margin-top:0.5rem;color:#94a3b8;">Assign this wristband:</div>
+            <div class="band-display" id="successBand"></div>
+            <div class="actions">
+                <button class="btn btn-success" id="markEnteredBtn" onclick="markEntered()"><i class="fas fa-door-open"></i> Mark Entered</button>
+                <button class="btn btn-secondary" onclick="resetScan()"><i class="fas fa-arrow-left"></i> Cancel</button>
+            </div>
+        </div>
+
+        <!-- Error Result -->
+        <div class="result-panel result-error" id="resultError">
+            <div class="icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h2 id="errorTitle">Error</h2>
+            <div class="detail" id="errorMessage"></div>
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="resetScan()"><i class="fas fa-arrow-left"></i> Try Again</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Init
+        function initSystem() {
+            if (!localStorage.getItem('cuffs_bands')) {
+                const bands = [];
+                for (let i = 0; i < 100; i++) {
+                    bands.push({
+                        bandId: 'BAND-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6) + '-' + Math.random().toString(36).substr(2, 4),
+                        status: 'available',
+                        createdAt: new Date().toISOString()
+                    });
+                }
+                localStorage.setItem('cuffs_bands', JSON.stringify(bands));
+            }
+            if (!localStorage.getItem('cuffs_tickets')) localStorage.setItem('cuffs_tickets', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_links')) localStorage.setItem('cuffs_links', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_exitLogs')) localStorage.setItem('cuffs_exitLogs', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_theftReports')) localStorage.setItem('cuffs_theftReports', JSON.stringify([]));
+        }
+        initSystem();
+
+        function getTickets() { return JSON.parse(localStorage.getItem('cuffs_tickets') || '[]'); }
+        function saveTickets(t) { localStorage.setItem('cuffs_tickets', JSON.stringify(t)); }
+        function getBands() { return JSON.parse(localStorage.getItem('cuffs_bands') || '[]'); }
+        function saveBands(b) { localStorage.setItem('cuffs_bands', JSON.stringify(b)); }
+        function getLinks() { return JSON.parse(localStorage.getItem('cuffs_links') || '[]'); }
+        function saveLinks(l) { localStorage.setItem('cuffs_links', JSON.stringify(l)); }
+
+        let currentTicket = null;
+        let assignedBand = null;
+
+        function updateStats() {
+            const tickets = getTickets();
+            const bands = getBands();
+            document.getElementById('statWaiting').textContent = tickets.filter(t => t.status === 'Sent').length;
+            document.getElementById('statInside').textContent = tickets.filter(t => t.status === 'Inside').length;
+            document.getElementById('statBands').textContent = bands.filter(b => b.status === 'available').length;
+        }
+        updateStats();
+
+        function simulateScan() {
+            const id = prompt('Simulate QR scan — enter Ticket ID:');
+            if (id && id.trim()) {
+                document.getElementById('manualTicketId').value = id.trim();
+                lookupTicket();
+            }
+        }
+
+        function lookupTicket() {
+            const ticketId = document.getElementById('manualTicketId').value.trim();
+            if (!ticketId) return;
+
+            const tickets = getTickets();
+            const ticket = tickets.find(t => t.ticketId === ticketId);
+
+            if (!ticket) {
+                showError('Ticket Not Found', 'No ticket exists with ID: ' + ticketId);
+                return;
+            }
+
+            if (ticket.status === 'Inside') {
+                showError('Already Inside', ticket.customerName + ' has already entered the event with band ' + (ticket.bandId || 'unknown') + '.');
+                return;
+            }
+
+            if (ticket.status === 'Exited') {
+                showError('Already Exited', ticket.customerName + ' already attended and exited this event.');
+                return;
+            }
+
+            if (ticket.status === 'Scanned') {
+                showError('Already Scanned', 'This ticket was already scanned but entry not confirmed. Band: ' + (ticket.bandId || 'unknown'));
+                return;
+            }
+
+            // Assign a band
+            const bands = getBands();
+            const availableBand = bands.find(b => b.status === 'available');
+            if (!availableBand) {
+                showError('No Bands Available', 'All wristbands have been assigned. Please add more bands from admin.');
+                return;
+            }
+
+            // Mark band as assigned
+            availableBand.status = 'assigned';
+            saveBands(bands);
+
+            // Update ticket
+            ticket.status = 'Scanned';
+            ticket.bandId = availableBand.bandId;
+            ticket.scannedAt = new Date().toISOString();
+            saveTickets(tickets);
+
+            // Create link
+            const links = getLinks();
+            links.push({
+                ticketId: ticket.ticketId,
+                bandId: availableBand.bandId,
+                customerName: ticket.customerName,
+                linkedAt: new Date().toISOString(),
+                status: 'active'
+            });
+            saveLinks(links);
+
+            currentTicket = ticket;
+            assignedBand = availableBand;
+            showSuccess(ticket, availableBand);
+        }
+
+        function showSuccess(ticket, band) {
+            document.getElementById('scanSection').style.display = 'none';
+            document.getElementById('resultError').classList.remove('active');
+            document.getElementById('successName').textContent = ticket.customerName;
+            document.getElementById('successEvent').textContent = ticket.event;
+            document.getElementById('successBand').textContent = band.bandId;
+            document.getElementById('resultSuccess').classList.add('active');
+            updateStats();
+        }
+
+        function showError(title, message) {
+            document.getElementById('scanSection').style.display = 'none';
+            document.getElementById('resultSuccess').classList.remove('active');
+            document.getElementById('errorTitle').textContent = title;
+            document.getElementById('errorMessage').textContent = message;
+            document.getElementById('resultError').classList.add('active');
+        }
+
+        function markEntered() {
+            if (!currentTicket) return;
+            if (!confirm('Confirm ' + currentTicket.customerName + ' has received wristband and is entering?')) return;
+
+            const tickets = getTickets();
+            const ticket = tickets.find(t => t.ticketId === currentTicket.ticketId);
+            if (ticket) {
+                ticket.status = 'Inside';
+                ticket.enteredAt = new Date().toISOString();
+                saveTickets(tickets);
+            }
+
+            // Update link status
+            const links = getLinks();
+            const link = links.find(l => l.ticketId === currentTicket.ticketId);
+            if (link) link.status = 'inside';
+            saveLinks(links);
+
+            alert('✅ ' + currentTicket.customerName + ' has entered the event!');
+            resetScan();
+        }
+
+        function resetScan() {
+            currentTicket = null;
+            assignedBand = null;
+            document.getElementById('manualTicketId').value = '';
+            document.getElementById('scanSection').style.display = 'block';
+            document.getElementById('resultSuccess').classList.remove('active');
+            document.getElementById('resultError').classList.remove('active');
+            updateStats();
+        }
+    </script>
+</body>
+</html>

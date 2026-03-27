@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuffs - Event Security System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0f172a;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .logo { font-size: 3.5rem; font-weight: 800; letter-spacing: -2px; margin-bottom: 0.25rem; }
+        .logo span { color: #00d4ff; }
+        .tagline { color: #94a3b8; font-size: 1.1rem; margin-bottom: 3rem; text-align: center; }
+        .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.5rem; max-width: 960px; width: 100%; }
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 2rem;
+            text-decoration: none;
+            color: #fff;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .card:hover { transform: translateY(-4px); border-color: #00d4ff; box-shadow: 0 8px 30px rgba(0,212,255,0.15); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 1rem; color: #00d4ff; }
+        .card h2 { font-size: 1.4rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .card p { color: #94a3b8; font-size: 0.95rem; line-height: 1.6; }
+        .card .arrow { position: absolute; top: 2rem; right: 2rem; color: #475569; font-size: 1.2rem; transition: all 0.3s; }
+        .card:hover .arrow { color: #00d4ff; transform: translateX(4px); }
+        .footer { margin-top: 3rem; color: #475569; font-size: 0.85rem; text-align: center; }
+        .stats-bar {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 2rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 960px;
+            width: 100%;
+        }
+        .stat { text-align: center; }
+        .stat .num { font-size: 1.8rem; font-weight: 700; color: #00d4ff; }
+        .stat .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; }
+    </style>
+</head>
+<body>
+    <div class="logo">CUFFS<span>.</span></div>
+    <p class="tagline">QR-Based Device Security System for Events in Kenya</p>
+
+    <div class="stats-bar" id="statsBar">
+        <div class="stat"><div class="num" id="totalTickets">0</div><div class="label">Tickets</div></div>
+        <div class="stat"><div class="num" id="totalInside">0</div><div class="label">Inside</div></div>
+        <div class="stat"><div class="num" id="totalExited">0</div><div class="label">Exited</div></div>
+        <div class="stat"><div class="num" id="totalBands">0</div><div class="label">Bands Available</div></div>
+    </div>
+
+    <div class="cards">
+        <a href="admin.html" class="card">
+            <i class="fas fa-shield-halved card-icon"></i>
+            <i class="fas fa-arrow-right arrow"></i>
+            <h2>Admin Panel</h2>
+            <p>Issue tickets, generate QR codes, manage events, and view system statistics.</p>
+        </a>
+        <a href="gate.html" class="card">
+            <i class="fas fa-door-open card-icon"></i>
+            <i class="fas fa-arrow-right arrow"></i>
+            <h2>Gate Entry</h2>
+            <p>Scan ticket QR codes, assign wristbands, and process event entry.</p>
+        </a>
+        <a href="exit.html" class="card">
+            <i class="fas fa-right-from-bracket card-icon"></i>
+            <i class="fas fa-arrow-right arrow"></i>
+            <h2>Exit Verification</h2>
+            <p>Verify wristband QR codes and confirm safe attendee exit.</p>
+        </a>
+    </div>
+
+    <p class="footer">Cuffs &copy; 2026 &mdash; Protecting attendees at every event</p>
+
+    <script>
+        // Initialize bands on first load
+        function initSystem() {
+            if (!localStorage.getItem('cuffs_bands')) {
+                const bands = [];
+                for (let i = 0; i < 100; i++) {
+                    bands.push({
+                        bandId: 'BAND-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6) + '-' + Math.random().toString(36).substr(2, 4),
+                        status: 'available',
+                        createdAt: new Date().toISOString()
+                    });
+                }
+                localStorage.setItem('cuffs_bands', JSON.stringify(bands));
+            }
+            if (!localStorage.getItem('cuffs_tickets')) localStorage.setItem('cuffs_tickets', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_links')) localStorage.setItem('cuffs_links', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_exitLogs')) localStorage.setItem('cuffs_exitLogs', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_theftReports')) localStorage.setItem('cuffs_theftReports', JSON.stringify([]));
+            updateStats();
+        }
+        function updateStats() {
+            const tickets = JSON.parse(localStorage.getItem('cuffs_tickets') || '[]');
+            const bands = JSON.parse(localStorage.getItem('cuffs_bands') || '[]');
+            document.getElementById('totalTickets').textContent = tickets.length;
+            document.getElementById('totalInside').textContent = tickets.filter(t => t.status === 'Inside').length;
+            document.getElementById('totalExited').textContent = tickets.filter(t => t.status === 'Exited').length;
+            document.getElementById('totalBands').textContent = bands.filter(b => b.status === 'available').length;
+        }
+        initSystem();
+    </script>
+</body>
+</html>

@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuffs - Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: #0f172a; color: #fff; min-height: 100vh; }
+
+        /* Nav */
+        .nav { background: #1e293b; border-bottom: 1px solid #334155; padding: 1rem 2rem; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem; }
+        .nav-logo { font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; text-decoration: none; color: #fff; }
+        .nav-logo span { color: #00d4ff; }
+        .nav-links { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .nav-links a { color: #94a3b8; text-decoration: none; padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.9rem; transition: all 0.2s; }
+        .nav-links a:hover, .nav-links a.active { color: #fff; background: #334155; }
+        .nav-links a.active { color: #00d4ff; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
+
+        /* Stats */
+        .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
+        .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 12px; padding: 1.25rem; text-align: center; }
+        .stat-card .num { font-size: 2rem; font-weight: 700; color: #00d4ff; }
+        .stat-card .label { font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 0.25rem; }
+
+        /* Form */
+        .section { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.5rem; margin-bottom: 2rem; }
+        .section-title { font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        .section-title i { color: #00d4ff; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; }
+        label { font-size: 0.85rem; color: #94a3b8; display: block; margin-bottom: 0.3rem; }
+        input, select { width: 100%; padding: 0.75rem 1rem; background: #0f172a; border: 1px solid #334155; border-radius: 8px; color: #fff; font-size: 0.95rem; font-family: inherit; transition: border 0.2s; }
+        input:focus, select:focus { outline: none; border-color: #00d4ff; }
+        .btn { padding: 0.75rem 1.5rem; border: none; border-radius: 8px; font-family: inherit; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 0.5rem; }
+        .btn-primary { background: #00d4ff; color: #0f172a; }
+        .btn-primary:hover { background: #00b8e6; transform: translateY(-1px); }
+        .btn-secondary { background: #334155; color: #fff; }
+        .btn-secondary:hover { background: #475569; }
+        .btn-danger { background: #ef4444; color: #fff; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-sm { padding: 0.4rem 0.8rem; font-size: 0.8rem; }
+        .form-actions { margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+        /* Table */
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        th { text-align: left; padding: 0.75rem; color: #94a3b8; font-weight: 600; border-bottom: 1px solid #334155; white-space: nowrap; }
+        td { padding: 0.75rem; border-bottom: 1px solid #1e293b; white-space: nowrap; }
+        .status-badge { padding: 0.2rem 0.6rem; border-radius: 999px; font-size: 0.75rem; font-weight: 600; }
+        .status-Sent { background: #1e3a5f; color: #60a5fa; }
+        .status-Scanned { background: #3b2f1e; color: #fbbf24; }
+        .status-Inside { background: #1e3b2f; color: #34d399; }
+        .status-Exited { background: #2d1e3b; color: #a78bfa; }
+
+        /* Modal */
+        .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 100; align-items: center; justify-content: center; padding: 1rem; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; max-width: 400px; width: 100%; text-align: center; }
+        .modal h3 { margin-bottom: 1rem; }
+        .modal .qr-display { background: #fff; border-radius: 12px; padding: 1rem; display: inline-block; margin: 1rem 0; }
+        .modal .ticket-id-display { font-family: monospace; font-size: 0.85rem; color: #94a3b8; margin-bottom: 1rem; word-break: break-all; }
+        .modal .btn { margin: 0.25rem; }
+
+        .empty-state { text-align: center; padding: 3rem 1rem; color: #475569; }
+        .empty-state i { font-size: 3rem; margin-bottom: 1rem; }
+
+        .search-bar { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+        .search-bar input { max-width: 300px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        .fade-in { animation: fadeIn 0.3s ease; }
+    </style>
+</head>
+<body>
+    <nav class="nav">
+        <a href="index.html" class="nav-logo">CUFFS<span>.</span></a>
+        <div class="nav-links">
+            <a href="admin.html" class="active"><i class="fas fa-shield-halved"></i> Admin</a>
+            <a href="gate.html"><i class="fas fa-door-open"></i> Gate</a>
+            <a href="exit.html"><i class="fas fa-right-from-bracket"></i> Exit</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Stats -->
+        <div class="stats fade-in">
+            <div class="stat-card"><div class="num" id="statTotal">0</div><div class="label">Total Tickets</div></div>
+            <div class="stat-card"><div class="num" id="statScanned">0</div><div class="label">Scanned at Gate</div></div>
+            <div class="stat-card"><div class="num" id="statInside">0</div><div class="label">Currently Inside</div></div>
+            <div class="stat-card"><div class="num" id="statExited">0</div><div class="label">Exited</div></div>
+        </div>
+
+        <!-- Issue Ticket Form -->
+        <div class="section fade-in">
+            <div class="section-title"><i class="fas fa-ticket"></i> Issue New Ticket</div>
+            <form id="ticketForm">
+                <div class="form-grid">
+                    <div><label>Customer Name *</label><input type="text" id="customerName" required placeholder="e.g. John Kamau"></div>
+                    <div><label>Email or WhatsApp *</label><input type="text" id="customerContact" required placeholder="e.g. john@email.com or +254..."></div>
+                    <div><label>Phone Number</label><input type="text" id="customerPhone" placeholder="+254 7XX XXX XXX"></div>
+                    <div><label>Event Name *</label><input type="text" id="eventName" required placeholder="e.g. Nyege Nyege 2026"></div>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-qrcode"></i> Generate Ticket &amp; QR</button>
+                    <button type="reset" class="btn btn-secondary"><i class="fas fa-eraser"></i> Clear</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Tickets Table -->
+        <div class="section fade-in">
+            <div class="section-title"><i class="fas fa-list"></i> All Tickets</div>
+            <div class="search-bar">
+                <input type="text" id="searchInput" placeholder="Search by name, ticket ID, or event...">
+                <button class="btn btn-secondary btn-sm" onclick="refreshTable()"><i class="fas fa-refresh"></i> Refresh</button>
+                <button class="btn btn-danger btn-sm" onclick="clearAllData()"><i class="fas fa-trash"></i> Clear All Data</button>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ticket ID</th>
+                            <th>Customer</th>
+                            <th>Contact</th>
+                            <th>Event</th>
+                            <th>Status</th>
+                            <th>Band ID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="ticketsBody"></tbody>
+                </table>
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-ticket"></i>
+                    <p>No tickets issued yet. Use the form above to create one.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal">
+            <h3><i class="fas fa-qrcode" style="color:#00d4ff"></i> Ticket QR Code</h3>
+            <p id="modalCustomerName" style="font-weight:600;margin-bottom:0.25rem;"></p>
+            <p id="modalEvent" style="color:#94a3b8;font-size:0.9rem;margin-bottom:0.5rem;"></p>
+            <div class="qr-display" id="qrDisplay"></div>
+            <div class="ticket-id-display" id="modalTicketId"></div>
+            <div>
+                <button class="btn btn-primary btn-sm" onclick="downloadQR()"><i class="fas fa-download"></i> Download QR</button>
+                <button class="btn btn-secondary btn-sm" onclick="closeModal()"><i class="fas fa-times"></i> Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize system
+        function initSystem() {
+            if (!localStorage.getItem('cuffs_bands')) {
+                const bands = [];
+                for (let i = 0; i < 100; i++) {
+                    bands.push({
+                        bandId: 'BAND-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6) + '-' + Math.random().toString(36).substr(2, 4),
+                        status: 'available',
+                        createdAt: new Date().toISOString()
+                    });
+                }
+                localStorage.setItem('cuffs_bands', JSON.stringify(bands));
+            }
+            if (!localStorage.getItem('cuffs_tickets')) localStorage.setItem('cuffs_tickets', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_links')) localStorage.setItem('cuffs_links', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_exitLogs')) localStorage.setItem('cuffs_exitLogs', JSON.stringify([]));
+            if (!localStorage.getItem('cuffs_theftReports')) localStorage.setItem('cuffs_theftReports', JSON.stringify([]));
+        }
+        initSystem();
+
+        function getTickets() { return JSON.parse(localStorage.getItem('cuffs_tickets') || '[]'); }
+        function saveTickets(t) { localStorage.setItem('cuffs_tickets', JSON.stringify(t)); }
+        function getBands() { return JSON.parse(localStorage.getItem('cuffs_bands') || '[]'); }
+
+        // Stats
+        function updateStats() {
+            const tickets = getTickets();
+            document.getElementById('statTotal').textContent = tickets.length;
+            document.getElementById('statScanned').textContent = tickets.filter(t => ['Scanned','Inside','Exited'].includes(t.status)).length;
+            document.getElementById('statInside').textContent = tickets.filter(t => t.status === 'Inside').length;
+            document.getElementById('statExited').textContent = tickets.filter(t => t.status === 'Exited').length;
+        }
+
+        // Issue ticket
+        document.getElementById('ticketForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const name = document.getElementById('customerName').value.trim();
+            const contact = document.getElementById('customerContact').value.trim();
+            const phone = document.getElementById('customerPhone').value.trim();
+            const event = document.getElementById('eventName').value.trim();
+            if (!name || !contact || !event) return;
+
+            const ticketId = 'TKT-' + Date.now() + '-' + Math.random().toString(36).substr(2, 6);
+            const ticket = {
+                ticketId, customerName: name, customerContact: contact, customerPhone: phone,
+                event, status: 'Sent', bandId: null,
+                createdAt: new Date().toISOString(), scannedAt: null, enteredAt: null, exitedAt: null
+            };
+
+            const tickets = getTickets();
+            tickets.unshift(ticket);
+            saveTickets(tickets);
+            this.reset();
+            refreshTable();
+            showQR(ticket);
+        });
+
+        // Show QR modal
+        let currentQRTicket = null;
+        function showQR(ticket) {
+            currentQRTicket = ticket;
+            document.getElementById('modalCustomerName').textContent = ticket.customerName;
+            document.getElementById('modalEvent').textContent = ticket.event;
+            document.getElementById('modalTicketId').textContent = ticket.ticketId;
+            const qrDiv = document.getElementById('qrDisplay');
+            qrDiv.innerHTML = '';
+            new QRCode(qrDiv, { text: ticket.ticketId, width: 200, height: 200, colorDark: '#0f172a', colorLight: '#ffffff' });
+            document.getElementById('qrModal').classList.add('active');
+        }
+
+        function closeModal() { document.getElementById('qrModal').classList.remove('active'); }
+        document.getElementById('qrModal').addEventListener('click', function(e) { if (e.target === this) closeModal(); });
+
+        function downloadQR() {
+            const canvas = document.querySelector('#qrDisplay canvas');
+            if (!canvas) return;
+            const link = document.createElement('a');
+            link.download = (currentQRTicket ? currentQRTicket.ticketId : 'qr') + '.png';
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Render table
+        function refreshTable() {
+            const tickets = getTickets();
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = search ? tickets.filter(t =>
+                t.customerName.toLowerCase().includes(search) ||
+                t.ticketId.toLowerCase().includes(search) ||
+                t.event.toLowerCase().includes(search)
+            ) : tickets;
+
+            const tbody = document.getElementById('ticketsBody');
+            const empty = document.getElementById('emptyState');
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '';
+                empty.style.display = 'block';
+            } else {
+                empty.style.display = 'none';
+                tbody.innerHTML = filtered.map(t => `
+                    <tr>
+                        <td style="font-family:monospace;font-size:0.8rem;">${t.ticketId}</td>
+                        <td>${t.customerName}</td>
+                        <td>${t.customerContact}</td>
+                        <td>${t.event}</td>
+                        <td><span class="status-badge status-${t.status}">${t.status}</span></td>
+                        <td style="font-family:monospace;font-size:0.75rem;">${t.bandId || '—'}</td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" onclick='showQR(${JSON.stringify(t).replace(/'/g, "\\'")})'><i class="fas fa-qrcode"></i></button>
+                            <button class="btn btn-danger btn-sm" onclick="deleteTicket('${t.ticketId}')"><i class="fas fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+            updateStats();
+        }
+
+        function deleteTicket(id) {
+            if (!confirm('Delete this ticket? This cannot be undone.')) return;
+            const tickets = getTickets().filter(t => t.ticketId !== id);
+            saveTickets(tickets);
+            // Free the band if assigned
+            const bands = getBands();
+            const band = bands.find(b => b.bandId === id);
+            // Also check links
+            let links = JSON.parse(localStorage.getItem('cuffs_links') || '[]');
+            const link = links.find(l => l.ticketId === id);
+            if (link) {
+                const bandObj = bands.find(b => b.bandId === link.bandId);
+                if (bandObj) bandObj.status = 'available';
+                links = links.filter(l => l.ticketId !== id);
+                localStorage.setItem('cuffs_links', JSON.stringify(links));
+                localStorage.setItem('cuffs_bands', JSON.stringify(bands));
+            }
+            refreshTable();
+        }
+
+        function clearAllData() {
+            if (!confirm('This will delete ALL tickets, bands, and logs. Are you sure?')) return;
+            if (!confirm('This action CANNOT be undone. Proceed?')) return;
+            localStorage.removeItem('cuffs_tickets');
+            localStorage.removeItem('cuffs_bands');
+            localStorage.removeItem('cuffs_links');
+            localStorage.removeItem('cuffs_exitLogs');
+            localStorage.removeItem('cuffs_theftReports');
+            initSystem();
+            refreshTable();
+        }
+
+        document.getElementById('searchInput').addEventListener('input', refreshTable);
+        refreshTable();
+    </script>
+</body>
+</html>
